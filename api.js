@@ -1,43 +1,26 @@
-const http = require('http');
+const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const User = require('./db/User');
 
-mongoose.connect('mongodb://127.0.0.1:27017/store');
 
-http.createServer(function(req, res) {
-    const { url, method } = req;
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+const app = express();
 
-    // console.log('url', url);
-    // console.log('method', method);
+mongoose.connect('mongodb://127.0.0.1:27017/store').then(() => app.listen(5273));
 
-    if(url == '/register' && method == 'POST') {
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
 
-        let body= "";
-        req.on("data", (chunk) => body += chunk );
-        req.on("end", async function() {
-            body = JSON.parse(body);
-
-            const { name, surname } = body;
-            const user = new User({ name, surname });
-            await user.save();
-            
-            console.log('user', user);
+app.use((req, res, next) => {
+    res.set('Access-Control-Allow-Origin', ['*']);
+    next();
+})
 
 
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'json/application;charset=utf-8');
-            res.write(JSON.stringify(user));
-            res.end();
-        });
+app.post('/register', async function(req, res) {
+    const { name, surname } = req.body;
+    const user = new User({ name, surname });
+    await user.save();
 
-        // console.log('From register');
-        // console.log('name', name);
-        // console.log('surname', surname);
-        // const user = {
-
-        // }
-    }
-
-
-}).listen(5273);
+    res.json(user);
+});
