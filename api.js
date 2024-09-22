@@ -18,9 +18,39 @@ app.use((req, res, next) => {
 
 
 app.post('/register', async function(req, res) {
-    const { name, surname } = req.body;
-    const user = new User({ name, surname });
-    await user.save();
+    const { name, surname, password, email } = req.body;
 
-    res.json(user);
+    try {
+        const user = new User({ name, surname, password, email });
+        await user.save();
+
+        res.json(user);
+    }
+    catch(err) {
+        const errors = errorHandler(err);
+        res.status(400).json(errors);
+    }
+
 });
+
+function errorHandler(err) {
+    const errors = {
+        name: '',
+        surname: '',
+        password: '',
+        email: '',
+    }
+
+    //duplicate error
+    if(err.code == 11000) {
+        errors.email = 'Email already taken';
+        return errors;
+    }
+
+    Object.values(err.errors).forEach(error => {
+        const { path, message } = error.properties;
+        errors[path] = message;
+    });
+
+    return errors;
+}
