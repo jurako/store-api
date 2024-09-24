@@ -1,22 +1,33 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('./db/User');
+
+const maxAge = 60 * 60 * 24 * 3;
+const createToken = (id) => {
+    return jwt.sign({ id }, 'store app secret', {
+        expiresIn: maxAge
+    })
+}
 
 
 const app = express();
 
 mongoose.connect('mongodb://127.0.0.1:27017/store').then(() => app.listen(5273));
 
+
+//Middleware
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-
 app.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', ['*']);
     next();
 })
 
 
+
+//Router
 app.post('/register', async function(req, res) {
     const { name, surname, password, email } = req.body;
 
@@ -24,7 +35,10 @@ app.post('/register', async function(req, res) {
         const user = new User({ name, surname, password, email });
         await user.save();
 
-        res.json(user);
+        const token = createToken(user._id);
+        
+        res.set('Set-Cookie', 'jwt='+token+'; MaxAge='+maxAge+'; Secure; HttpOnly;');
+        res.status(201).json(user);
     }
     catch(err) {
         const errors = errorHandler(err);
@@ -33,6 +47,13 @@ app.post('/register', async function(req, res) {
 
 });
 
+app.post('/login', async function(req, res) {
+    
+});
+
+
+
+//Error handlers
 function errorHandler(err) {
     const errors = {
         name: '',
