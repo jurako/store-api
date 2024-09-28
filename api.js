@@ -37,7 +37,7 @@ app.post('/register', async function(req, res) {
 
         const token = createToken(user._id);
         
-        res.set('Set-Cookie', 'jwt='+token+'; MaxAge='+maxAge+'; Secure; HttpOnly;');
+        res.set('Set-Cookie', 'jwt='+token+'; Max-Age='+maxAge+'; Secure; HttpOnly;');
         res.status(201).json(user);
     }
     catch(err) {
@@ -48,7 +48,21 @@ app.post('/register', async function(req, res) {
 });
 
 app.post('/login', async function(req, res) {
-    
+
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.login(email, password);
+        const token = createToken(user._id);
+
+        res.setHeader('Set-Cookie', 'jwt='+token+'; Max-Age='+(maxAge*1000)+'; Secure; HttpOnly;');
+        res.setHeader('Set-Cookie', 'testCookie=test123; SameSite=None; Secure');
+        res.status(200).json(user);
+    }
+    catch(err) {
+        const errors = errorHandler(err);
+        res.status(403).json(errors);
+    }
 });
 
 
@@ -60,6 +74,16 @@ function errorHandler(err) {
         surname: '',
         password: '',
         email: '',
+    }
+
+    //login errors
+    if(err.message == 'Incorrect password') {
+        errors.password = 'Specified password is incorrect';
+        return errors;
+    }
+    if(err.message == 'Incorrect email') {
+        errors.email = 'Email doesn\'t exist';
+        return errors;
     }
 
     //duplicate error
