@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const User = require('./db/User');
 
 const maxAge = 60 * 60 * 24 * 3;
@@ -20,11 +21,13 @@ mongoose.connect('mongodb://127.0.0.1:27017/store').then(() => app.listen(5273))
 //Middleware
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-app.use((req, res, next) => {
-    res.set('Access-Control-Allow-Origin', ['*']);
-    next();
-})
-
+app.use(cors({
+    origin: [
+      'http://localhost:5173'
+    ],
+    credentials: true,
+    exposedHeaders: ['set-cookie']
+}));
 
 
 //Router
@@ -113,7 +116,6 @@ async function stopHandler() {
 
   const timeoutId = setTimeout(() => {
     process.exit(1);
-    console.error('Stopped forcefully, not all connection was closed');
   }, 2000);
 
   try {
