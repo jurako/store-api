@@ -1,9 +1,10 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const User = require('./db/User');
+const express      = require('express');
+const bodyParser   = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors         = require('cors');
+const jwt          = require('jsonwebtoken');
+const mongoose     = require('mongoose');
+const User         = require('./db/User');
 
 const maxAge = 60 * 60 * 24 * 3;
 const createToken = (id) => {
@@ -21,6 +22,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/store').then(() => app.listen(5273))
 //Middleware
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(cookieParser())
 app.use(cors({
     origin: [
       'http://localhost:5173'
@@ -40,7 +42,7 @@ app.post('/register', async function(req, res) {
 
         const token = createToken(user._id);
         
-        res.set('Set-Cookie', 'jwt='+token+'; Max-Age='+maxAge+'; Secure; HttpOnly;');
+        res.cookie('jwt', token, { maxAge: maxAge*1000, httpOnly: true, secure: true });
         res.status(201).json(user);
     }
     catch(err) {
@@ -58,8 +60,7 @@ app.post('/login', async function(req, res) {
         const user = await User.login(email, password);
         const token = createToken(user._id);
 
-        res.setHeader('Set-Cookie', 'jwt='+token+'; Max-Age='+(maxAge*1000)+'; Secure; HttpOnly;');
-        res.setHeader('Set-Cookie', 'testCookie=test123; SameSite=None; Secure');
+        res.cookie('jwt', token, { maxAge: maxAge*1000, httpOnly: true, secure: true });
         res.status(200).json(user);
     }
     catch(err) {
