@@ -69,6 +69,11 @@ app.post('/login', async function(req, res) {
     }
 });
 
+app.post('/logout', (req, res) => {
+    res.clearCookie('jwt', '', { httpOnly: true, secure: true });
+    res.send({ logout: 'ok '});
+})
+
 
 
 //Error handlers
