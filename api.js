@@ -34,10 +34,10 @@ app.use(cors({
 
 //Router
 app.post('/register', async function(req, res) {
-    const { name, surname, password, email } = req.body;
+    const { name, lastName, password, email } = req.body;
 
     try {
-        const user = new User({ name, surname, password, email });
+        const user = new User({ name, lastName, password, email });
         await user.save();
 
         const token = createToken(user._id);
@@ -80,7 +80,7 @@ app.post('/logout', (req, res) => {
 function errorHandler(err) {
     const errors = {
         name: '',
-        surname: '',
+        lastName: '',
         password: '',
         email: '',
     }
