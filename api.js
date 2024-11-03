@@ -4,7 +4,9 @@ const cookieParser = require('cookie-parser');
 const cors         = require('cors');
 const jwt          = require('jsonwebtoken');
 const mongoose     = require('mongoose');
+const authenticate = require('./middleware/authentication'); 
 const User         = require('./db/User');
+const Order        = require('./db/Order');
 
 const maxAge = 60 * 60 * 24 * 3;
 const createToken = (id) => {
@@ -72,7 +74,23 @@ app.post('/login', async function(req, res) {
 app.post('/logout', (req, res) => {
     res.clearCookie('jwt', '', { httpOnly: true, secure: true });
     res.send({ logout: 'ok '});
-})
+});
+
+app.get('/orders', authenticate, async (req, res) => {
+
+    const userOrders = await Order.find({userId: res.locals.userId});
+    res.json(userOrders);
+});
+
+app.post('/orders', authenticate, (req, res) => {
+    const { status, items, shipping } = req.body;
+
+
+    const order = new Order({ userId: res.locals.userId, status, items, shipping });
+    order.save();
+
+    res.send({ message: 'Order created' });
+});
 
 
 
