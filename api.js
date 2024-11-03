@@ -8,7 +8,7 @@ const User         = require('./db/User');
 
 const maxAge = 60 * 60 * 24 * 3;
 const createToken = (id) => {
-    return jwt.sign({ id }, 'store app secret', {
+    return jwt.sign({ id }, process.env.SECRET, {
         expiresIn: maxAge
     })
 }
